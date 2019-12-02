@@ -15,7 +15,7 @@ import (
 	"mime/multipart"
 )
 
-var requestBodyPool  buffer.Pool
+var requestBodyPool buffer.Pool
 
 // ErrGetOnly is returned when server expects only GET requests,
 // but some other type of request came (Server.GetOnly option is true).
@@ -107,12 +107,10 @@ func (req *Request) SetConnectionClose() {
 	req.Header.SetConnectionClose()
 }
 
-
 func swapRequestBody(a, b *Request) {
 	a.body, b.body = b.body, a.body
 	a.bodyStream, b.bodyStream = b.bodyStream, a.bodyStream
 }
-
 
 // SetBodyStream sets request body stream and, optionally body size.
 //
@@ -155,7 +153,6 @@ func (req *Request) SetBodyStreamWriter(sw StreamWriter) {
 	req.SetBodyStream(sr, -1)
 }
 
-
 // BodyWriter returns writer for populating request body.
 func (req *Request) BodyWriter() io.Writer {
 	req.w.r = req
@@ -171,7 +168,6 @@ func (w *requestBodyWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-
 func (req *Request) bodyBytes() []byte {
 	if req.body == nil {
 		return nil
@@ -179,14 +175,12 @@ func (req *Request) bodyBytes() []byte {
 	return req.body.B
 }
 
-
 func (req *Request) bodyBuffer() *buffer.Buffer {
 	if req.body == nil {
 		req.body = requestBodyPool.Get()
 	}
 	return req.body
 }
-
 
 // BodyGunzip returns un-gzipped body data.
 //
@@ -197,7 +191,6 @@ func (req *Request) BodyGunzip() ([]byte, error) {
 	return gunzipData(req.Body())
 }
 
-
 // BodyInflate returns inflated body data.
 //
 // This method may be used if the response header contains
@@ -206,7 +199,6 @@ func (req *Request) BodyGunzip() ([]byte, error) {
 func (req *Request) BodyInflate() ([]byte, error) {
 	return inflateData(req.Body())
 }
-
 
 // BodyWriteTo writes request body to w.
 func (req *Request) BodyWriteTo(w io.Writer) error {
@@ -221,7 +213,6 @@ func (req *Request) BodyWriteTo(w io.Writer) error {
 	_, err := w.Write(req.bodyBytes())
 	return err
 }
-
 
 // ReleaseBody retires the request body if it is greater than "size" bytes.
 //
@@ -349,7 +340,6 @@ func (req *Request) copyToSkipBody(dst *Request) {
 	// re-created on the first call to MultipartForm.
 }
 
-
 // URI returns request URI
 func (req *Request) URI() *URI {
 	req.parseURI()
@@ -382,7 +372,6 @@ func (req *Request) parsePostArgs() {
 	}
 	req.postArgs.ParseBytes(req.bodyBytes())
 }
-
 
 // MultipartForm returns requests's multipart form.
 //
@@ -420,7 +409,6 @@ func (req *Request) MultipartForm() (*multipart.Form, error) {
 	req.multipartForm = f
 	return f, nil
 }
-
 
 // Reset clears request contents.
 func (req *Request) Reset() {
@@ -467,7 +455,6 @@ func (req *Request) RemoveMultipartFormFiles() {
 func (req *Request) Read(r *bufio.Reader) error {
 	return req.ReadLimitBody(r, 0)
 }
-
 
 // ReadLimitBody reads request from the given r, limiting the body size.
 //
@@ -583,7 +570,6 @@ func (req *Request) WriteTo(w io.Writer) (int64, error) {
 	return writeBufio(req, w)
 }
 
-
 func (req *Request) onlyMultipartForm() bool {
 	return req.multipartForm != nil && (req.body == nil || len(req.body.B) == 0)
 }
@@ -655,7 +641,6 @@ func (req *Request) Write(w *bufio.Writer) error {
 	return err
 }
 
-
 func (req *Request) writeBodyStream(w *bufio.Writer) error {
 	var err error
 
@@ -689,7 +674,6 @@ func (req *Request) writeBodyStream(w *bufio.Writer) error {
 	return err
 }
 
-
 func (req *Request) closeBodyStream() error {
 	if req.bodyStream == nil {
 		return nil
@@ -701,7 +685,6 @@ func (req *Request) closeBodyStream() error {
 	req.bodyStream = nil
 	return err
 }
-
 
 // String returns request representation.
 //
@@ -719,8 +702,6 @@ func marshalMultipartForm(f *multipart.Form, boundary string) ([]byte, error) {
 	}
 	return buf.B, nil
 }
-
-
 
 // WriteMultipartForm writes the given multipart form f with the given
 // boundary to w.
@@ -771,7 +752,6 @@ func WriteMultipartForm(w io.Writer, f *multipart.Form, boundary string) error {
 
 	return nil
 }
-
 
 func readMultipartForm(r io.Reader, boundary string, size, maxInMemoryFileSize int) (*multipart.Form, error) {
 	// Do not care about memory allocations here, since they are tiny

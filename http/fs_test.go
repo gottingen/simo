@@ -282,7 +282,7 @@ func TestFSByteRangeConcurrent(t *testing.T) {
 		go func() {
 			for j := 0; j < 5; j++ {
 				testFSByteRange(t, h, "/fs.go")
-				testFSByteRange(t, h, "/README.md")
+				testFSByteRange(t, h, "/testdata/test_gzip.txt")
 			}
 			ch <- struct{}{}
 		}()
@@ -307,7 +307,7 @@ func TestFSByteRangeSingleThread(t *testing.T) {
 	h := fs.NewRequestHandler()
 
 	testFSByteRange(t, h, "/fs.go")
-	testFSByteRange(t, h, "/README.md")
+	testFSByteRange(t, h, "/testdata/test_gzip.txt")
 }
 
 func testFSByteRange(t *testing.T, h RequestHandler, filePath string) {
@@ -453,7 +453,7 @@ func TestFSCompressConcurrent(t *testing.T) {
 			for j := 0; j < 5; j++ {
 				testFSCompress(t, h, "/fs.go")
 				testFSCompress(t, h, "/")
-				testFSCompress(t, h, "/README.md")
+				testFSCompress(t, h, "/testdata/test_gzip.txt")
 			}
 			ch <- struct{}{}
 		}()
@@ -480,7 +480,7 @@ func TestFSCompressSingleThread(t *testing.T) {
 
 	testFSCompress(t, h, "/fs.go")
 	testFSCompress(t, h, "/")
-	testFSCompress(t, h, "/README.md")
+	testFSCompress(t, h, "/testdata/test_gzip.txt")
 }
 
 func testFSCompress(t *testing.T, h RequestHandler, filePath string) {

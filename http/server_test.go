@@ -898,8 +898,8 @@ func TestServerTLS(t *testing.T) {
 	text := []byte("Make http great again")
 	ln := listener.NewMemListener()
 
-	certFile := "./ssl-cert-snakeoil.pem"
-	keyFile := "./ssl-cert-snakeoil.key"
+	certFile := "./testdata/ssl-cert-snakeoil.pem"
+	keyFile := "./testdata/ssl-cert-snakeoil.key"
 
 	s := &Server{
 		Handler: func(ctx *RequestCtx) {
@@ -945,8 +945,8 @@ func TestServerServeTLSEmbed(t *testing.T) {
 
 	ln := listener.NewMemListener()
 
-	certFile := "./ssl-cert-snakeoil.pem"
-	keyFile := "./ssl-cert-snakeoil.key"
+	certFile := "./testdata/ssl-cert-snakeoil.pem"
+	keyFile := "./testdata/ssl-cert-snakeoil.key"
 
 	certData, err := ioutil.ReadFile(certFile)
 	if err != nil {
