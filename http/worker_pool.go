@@ -2,6 +2,7 @@ package http
 
 
 import (
+	"github.com/gottingen/viper"
 	"net"
 	"runtime"
 	"strings"
@@ -25,7 +26,7 @@ type workerPool struct {
 
 	MaxIdleWorkerDuration time.Duration
 
-	Logger Logger
+	Logger *viper.Logger
 
 	lock         sync.Mutex
 	workersCount int
@@ -228,7 +229,8 @@ func (wp *workerPool) workerFunc(ch *workerChan) {
 				strings.Contains(errStr, "request headers: small read buffer") ||
 				strings.Contains(errStr, "unexpected EOF") ||
 				strings.Contains(errStr, "i/o timeout")) {
-				wp.Logger.Printf("error when serving connection %q<->%q: %s", c.LocalAddr(), c.RemoteAddr(), err)
+				wp.Logger.Error("error when serving connection", viper.String("localaddr", c.LocalAddr().String()),
+					viper.String("remoteaddr", c.RemoteAddr().String()))
 			}
 		}
 		if err == errHijacked {

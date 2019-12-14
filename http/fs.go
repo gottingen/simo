@@ -1,14 +1,14 @@
 package http
 
-
 import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/gottingen/simo/compress"
 	"github.com/gottingen/simo/http/bytesconv"
-	"github.com/gottingen/simo/http/compress"
 	"github.com/gottingen/simo/http/constant"
 	"github.com/gottingen/simo/util"
+	"github.com/gottingen/viper"
 	"html"
 	"io"
 	"io/ioutil"
@@ -21,8 +21,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/klauspost/compress/gzip"
 	"github.com/gottingen/gekko/buffer"
+	"github.com/klauspost/compress/gzip"
 )
 
 // ServeFileBytesUncompressed returns HTTP response containing file contents
@@ -91,7 +91,7 @@ func ServeFile(ctx *RequestCtx, path string) {
 		// extend relative path to absolute path
 		var err error
 		if path, err = filepath.Abs(path); err != nil {
-			ctx.Logger().Printf("cannot resolve path %q to absolute file path: %s", path, err)
+			ctx.Logger().logger.Error("cannot resolve path", viper.String("resolve path", path), viper.Error(err))
 			ctx.Error("Internal Server Error", constant.StatusInternalServerError)
 			return
 		}
@@ -199,7 +199,7 @@ func NewPathPrefixStripper(prefixSize int) PathRewriteFunc {
 //
 // It is prohibited copying FS values. Create new values instead.
 type FS struct {
-	noCopy util.NoCopy//nolint:unused,structcheck
+	noCopy util.NoCopy //nolint:unused,structcheck
 
 	// Path to the root directory to serve files from.
 	Root string
@@ -692,7 +692,7 @@ func (h *fsHandler) handleRequest(ctx *RequestCtx) {
 	path = stripTrailingSlashes(path)
 
 	if n := bytes.IndexByte(path, 0); n >= 0 {
-		ctx.Logger().Printf("cannot serve path with nil byte at position %d: %q", n, path)
+		ctx.Logger().logger.Error("cannot serve path with nil byte", viper.Int("position", n), viper.ByteString("path", path))
 		ctx.Error("Are you a hacker?", constant.StatusBadRequest)
 		return
 	}
@@ -701,8 +701,8 @@ func (h *fsHandler) handleRequest(ctx *RequestCtx) {
 		// since ctx.Path must normalize and sanitize the path.
 
 		if n := bytes.Index(path, constant.StrSlashDotDotSlash); n >= 0 {
-			ctx.Logger().Printf("cannot serve path with '/../' at position %d due to security reasons: %q", n, path)
-			ctx.Error("Internal Server Error", constant.StatusInternalServerError)
+			ctx.Logger().logger.Error("cannot serve path with '/../'", viper.Int("position", n), viper.ByteString("path", path))
+			ctx.Logger().logger.Error("Internal Server Error", viper.Int("status", constant.StatusInternalServerError))
 			return
 		}
 	}
@@ -728,20 +728,20 @@ func (h *fsHandler) handleRequest(ctx *RequestCtx) {
 		var err error
 		ff, err = h.openFSFile(filePath, mustCompress)
 		if mustCompress && err == errNoCreatePermission {
-			ctx.Logger().Printf("insufficient permissions for saving compressed file for %q. Serving uncompressed file. "+
-				"Allow write access to the directory with this file in order to improve http performance", filePath)
+			ctx.Logger().logger.Error("insufficient permissions for saving compressed file", viper.String("path", filePath))
+
 			mustCompress = false
 			ff, err = h.openFSFile(filePath, mustCompress)
 		}
 		if err == errDirIndexRequired {
 			ff, err = h.openIndexFile(ctx, filePath, mustCompress)
 			if err != nil {
-				ctx.Logger().Printf("cannot open dir index %q: %s", filePath, err)
-				ctx.Error("Directory index is forbidden", constant.StatusForbidden)
+				ctx.Logger().logger.Error("cannot open dir index", viper.String("path", filePath), viper.Error(err))
+				ctx.Logger().logger.Error("Directory index is forbidden",viper.Int("status", constant.StatusForbidden))
 				return
 			}
 		} else if err != nil {
-			ctx.Logger().Printf("cannot open file %q: %s", filePath, err)
+			ctx.Logger().logger.Error("cannot open file", viper.String("path", filePath), viper.Error(err))
 			if h.pathNotFound == nil {
 				ctx.Error("Cannot open requested path", constant.StatusNotFound)
 			} else {
@@ -778,7 +778,7 @@ func (h *fsHandler) handleRequest(ctx *RequestCtx) {
 
 	r, err := ff.NewReader()
 	if err != nil {
-		ctx.Logger().Printf("cannot obtain file reader for path=%q: %s", path, err)
+		ctx.Logger().logger.Error("cannot obtain file reader", viper.ByteString("path", path), viper.Error(err))
 		ctx.Error("Internal Server Error", constant.StatusInternalServerError)
 		return
 	}
@@ -796,14 +796,16 @@ func (h *fsHandler) handleRequest(ctx *RequestCtx) {
 			startPos, endPos, err := ParseByteRange(byteRange, contentLength)
 			if err != nil {
 				r.(io.Closer).Close()
-				ctx.Logger().Printf("cannot parse byte range %q for path=%q: %s", byteRange, path, err)
+				ctx.Logger().logger.Error("cannot parse byte range", viper.ByteString("byteRange", byteRange),
+					viper.ByteString("path", path), viper.Error(err))
 				ctx.Error("Range Not Satisfiable", constant.StatusRequestedRangeNotSatisfiable)
 				return
 			}
 
 			if err = r.(byteRangeUpdater).UpdateByteRange(startPos, endPos); err != nil {
 				r.(io.Closer).Close()
-				ctx.Logger().Printf("cannot seek byte range %q for path=%q: %s", byteRange, path, err)
+				ctx.Logger().logger.Error("cannot seek byte range", viper.ByteString("byteRange", byteRange),
+					viper.ByteString("path", path), viper.Error(err))
 				ctx.Error("Internal Server Error", constant.StatusInternalServerError)
 				return
 			}
@@ -823,7 +825,7 @@ func (h *fsHandler) handleRequest(ctx *RequestCtx) {
 		ctx.Response.Header.SetContentLength(contentLength)
 		if rc, ok := r.(io.Closer); ok {
 			if err := rc.Close(); err != nil {
-				ctx.Logger().Printf("cannot close file reader: %s", err)
+				ctx.Logger().logger.Error("cannot close file reader",viper.Error(err))
 				ctx.Error("Internal Server Error", constant.StatusInternalServerError)
 				return
 			}

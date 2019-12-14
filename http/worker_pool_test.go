@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gottingen/simo/listener"
+	"github.com/gottingen/network/listener"
 )
 
 func TestWorkerPoolStartStopSerial(t *testing.T) {

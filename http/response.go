@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/simo/compress"
 	"github.com/gottingen/simo/http/bytesconv"
-	"github.com/gottingen/simo/http/compress"
 	"github.com/gottingen/simo/http/constant"
 	"github.com/gottingen/simo/util"
 	"io"
@@ -53,7 +53,6 @@ type Response struct {
 	laddr net.Addr
 }
 
-
 // StatusCode returns response status code.
 func (resp *Response) StatusCode() int {
 	return resp.Header.StatusCode()
@@ -73,7 +72,6 @@ func (resp *Response) ConnectionClose() bool {
 func (resp *Response) SetConnectionClose() {
 	resp.Header.SetConnectionClose()
 }
-
 
 // SendFile registers file on the given path to be used as response body
 // when Write is called.
@@ -101,7 +99,6 @@ func (resp *Response) SendFile(path string) error {
 	return nil
 }
 
-
 // SetBodyStream sets response body stream and, optionally body size.
 //
 // If bodySize is >= 0, then the bodyStream must provide exactly bodySize bytes
@@ -119,12 +116,10 @@ func (resp *Response) SetBodyStream(bodyStream io.Reader, bodySize int) {
 	resp.Header.SetContentLength(bodySize)
 }
 
-
 // IsBodyStream returns true if body is set via SetBodyStream*
 func (resp *Response) IsBodyStream() bool {
 	return resp.bodyStream != nil
 }
-
 
 // SetBodyStreamWriter registers the given sw for populating response body.
 //
@@ -141,7 +136,6 @@ func (resp *Response) SetBodyStreamWriter(sw StreamWriter) {
 	resp.SetBodyStream(sr, -1)
 }
 
-
 // BodyWriter returns writer for populating response body.
 //
 // If used inside RequestHandler, the returned writer must not be used
@@ -152,7 +146,6 @@ func (resp *Response) BodyWriter() io.Writer {
 	return &resp.w
 }
 
-
 type responseBodyWriter struct {
 	r *Response
 }
@@ -161,7 +154,6 @@ func (w *responseBodyWriter) Write(p []byte) (int, error) {
 	w.r.AppendBody(p)
 	return len(p), nil
 }
-
 
 func (resp *Response) parseNetConn(conn net.Conn) {
 	resp.raddr = conn.RemoteAddr()
@@ -206,7 +198,6 @@ func (resp *Response) bodyBytes() []byte {
 	return resp.body.B
 }
 
-
 func (resp *Response) bodyBuffer() *buffer.Buffer {
 	if resp.body == nil {
 		resp.body = responseBodyPool.Get()
@@ -215,14 +206,13 @@ func (resp *Response) bodyBuffer() *buffer.Buffer {
 	return resp.body
 }
 
-
 // BodyGunzip returns un-gzipped body data.
 //
 // This method may be used if the response header contains
 // 'Content-Encoding: gzip' for reading un-gzipped body.
 // Use Body for reading gzipped response body.
 func (resp *Response) BodyGunzip() ([]byte, error) {
-	return gunzipData(resp.Body())
+	return compress.GunzipData(resp.Body())
 }
 
 // BodyInflate returns inflated body data.
@@ -231,9 +221,8 @@ func (resp *Response) BodyGunzip() ([]byte, error) {
 // 'Content-Encoding: deflate' for reading inflated response body.
 // Use Body for reading deflated response body.
 func (resp *Response) BodyInflate() ([]byte, error) {
-	return inflateData(resp.Body())
+	return compress.InflateData(resp.Body())
 }
-
 
 // BodyWriteTo writes response body to w.
 func (resp *Response) BodyWriteTo(w io.Writer) error {
@@ -311,7 +300,6 @@ func (resp *Response) ReleaseBody(size int) {
 	}
 }
 
-
 // SwapBody swaps response body with the given body and returns
 // the previous response body.
 //
@@ -337,7 +325,6 @@ func (resp *Response) SwapBody(body []byte) []byte {
 	return oldBody
 }
 
-
 // CopyTo copies resp contents to dst except of body stream.
 func (resp *Response) CopyTo(dst *Response) {
 	resp.copyToSkipBody(dst)
@@ -361,13 +348,11 @@ func (resp *Response) copyToSkipBody(dst *Response) {
 	dst.laddr = resp.laddr
 }
 
-
 func swapResponseBody(a, b *Response) {
 	a.body, b.body = b.body, a.body
 	a.bodyRaw, b.bodyRaw = b.bodyRaw, a.bodyRaw
 	a.bodyStream, b.bodyStream = b.bodyStream, a.bodyStream
 }
-
 
 // Reset clears response contents.
 func (resp *Response) Reset() {
@@ -382,7 +367,6 @@ func (resp *Response) Reset() {
 func (resp *Response) resetSkipHeader() {
 	resp.ResetBody()
 }
-
 
 // Read reads response (including body) from the given r.
 //
@@ -426,12 +410,10 @@ func (resp *Response) mustSkipBody() bool {
 	return resp.SkipBody || resp.Header.mustSkipContentLength()
 }
 
-
 // WriteTo writes response to w. It implements io.WriterTo.
 func (resp *Response) WriteTo(w io.Writer) (int64, error) {
 	return writeBufio(resp, w)
 }
-
 
 // WriteGzip writes response with gzipped body to w.
 //
@@ -442,7 +424,6 @@ func (resp *Response) WriteTo(w io.Writer) (int64, error) {
 func (resp *Response) WriteGzip(w *bufio.Writer) error {
 	return resp.WriteGzipLevel(w, compress.CompressDefaultCompression)
 }
-
 
 // WriteGzipLevel writes response with gzipped body to w.
 //
@@ -464,8 +445,6 @@ func (resp *Response) WriteGzipLevel(w *bufio.Writer, level int) error {
 	}
 	return resp.Write(w)
 }
-
-
 
 // WriteDeflate writes response with deflated body to w.
 //
@@ -606,7 +585,6 @@ func (resp *Response) deflateBody(level int) error {
 	return nil
 }
 
-
 // Write writes response to w.
 //
 // Write doesn't flush response to w for performance reasons.
@@ -634,7 +612,6 @@ func (resp *Response) Write(w *bufio.Writer) error {
 	}
 	return nil
 }
-
 
 func (resp *Response) writeBodyStream(w *bufio.Writer, sendBody bool) (err error) {
 	defer func() {
@@ -685,7 +662,6 @@ func (resp *Response) writeBodyStream(w *bufio.Writer, sendBody bool) (err error
 	return err
 }
 
-
 func (resp *Response) closeBodyStream() error {
 	if resp.bodyStream == nil {
 		return nil
@@ -698,7 +674,6 @@ func (resp *Response) closeBodyStream() error {
 	return err
 }
 
-
 // String returns response representation.
 //
 // Returns error message instead of response representation on error.
@@ -707,4 +682,3 @@ func (resp *Response) closeBodyStream() error {
 func (resp *Response) String() string {
 	return getHTTPString(resp)
 }
-

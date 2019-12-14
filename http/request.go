@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/simo/compress"
 	"github.com/gottingen/simo/http/bytesconv"
-	"github.com/gottingen/simo/http/compress"
 	"github.com/gottingen/simo/http/constant"
 	"github.com/gottingen/simo/util"
 	"io"
@@ -188,7 +188,7 @@ func (req *Request) bodyBuffer() *buffer.Buffer {
 // 'Content-Encoding: gzip' for reading un-gzipped body.
 // Use Body for reading gzipped request body.
 func (req *Request) BodyGunzip() ([]byte, error) {
-	return gunzipData(req.Body())
+	return compress.GunzipData(req.Body())
 }
 
 // BodyInflate returns inflated body data.
@@ -197,7 +197,7 @@ func (req *Request) BodyGunzip() ([]byte, error) {
 // 'Content-Encoding: deflate' for reading inflated request body.
 // Use Body for reading deflated request body.
 func (req *Request) BodyInflate() ([]byte, error) {
-	return inflateData(req.Body())
+	return compress.InflateData(req.Body())
 }
 
 // BodyWriteTo writes request body to w.

@@ -437,3 +437,21 @@ func normalizeCompressLevel(level int) int {
 	}
 	return level + 2
 }
+
+func GunzipData(p []byte) ([]byte, error) {
+	var bb buffer.Buffer
+	_, err := WriteGunzip(&bb, p)
+	if err != nil {
+		return nil, err
+	}
+	return bb.B, nil
+}
+
+func InflateData(p []byte) ([]byte, error) {
+	var bb buffer.Buffer
+	_, err := WriteInflate(&bb, p)
+	if err != nil {
+		return nil, err
+	}
+	return bb.B, nil
+}

@@ -1,11 +1,11 @@
 package http
 
-
 import (
 	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/gottingen/simo/http/constant"
+	"github.com/gottingen/viper"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+var fsTestLogger = viper.NewNop()
+/*
 type TestLogger struct {
 	t *testing.T
 }
@@ -23,7 +25,7 @@ type TestLogger struct {
 func (t TestLogger) Printf(format string, args ...interface{}) {
 	t.t.Logf(format, args...)
 }
-
+*/
 func TestNewVHostPathRewriter(t *testing.T) {
 	t.Parallel()
 
@@ -69,7 +71,7 @@ func testPathNotFound(t *testing.T, pathNotFoundFunc RequestHandler) {
 	var ctx RequestCtx
 	var req Request
 	req.SetRequestURI("http//some.url/file")
-	ctx.Init(&req, nil, TestLogger{t})
+	ctx.Init(&req, nil, fsTestLogger)
 
 	fs := &FS{
 		Root:         "./",
@@ -518,7 +520,7 @@ func testFSCompress(t *testing.T, h RequestHandler, filePath string) {
 		t.Fatalf("unexpected error: %s. filePath=%q", err, filePath)
 	}
 	if resp.StatusCode() != constant.StatusOK {
-		t.Fatalf("unexpected status code: %d. Expecting %d. filePath=%q", resp.StatusCode(),constant. StatusOK, filePath)
+		t.Fatalf("unexpected status code: %d. Expecting %d. filePath=%q", resp.StatusCode(), constant.StatusOK, filePath)
 	}
 	ce = resp.Header.Peek(constant.HeaderContentEncoding)
 	if string(ce) != "gzip" {
@@ -740,4 +742,3 @@ func TestServeFileContentType(t *testing.T) {
 		t.Fatalf("Unexpected Content-Type, expected: %q got %q", expected, resp.Header.ContentType())
 	}
 }
-

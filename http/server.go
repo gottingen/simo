@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gottingen/simo/http/constant"
 	"github.com/gottingen/simo/util"
+	"github.com/gottingen/viper"
 	"io"
 	"mime/multipart"
 	"net"
@@ -336,7 +337,7 @@ type Server struct {
 	// Logger, which is used by RequestCtx.Logger().
 	//
 	// By default standard logger from log package is used.
-	Logger Logger
+	Logger *viper.Logger
 
 	// KeepHijackedConns is an opt-in disable of connection
 	// close by http after connections' HijackHandler returns.
@@ -398,7 +399,6 @@ type connTLSer interface {
 	ConnectionState() tls.ConnectionState
 }
 
-
 type firstByteReader struct {
 	c        net.Conn
 	ch       byte
@@ -425,7 +425,6 @@ var ctxLoggerLock sync.Mutex
 var zeroTCPAddr = &net.TCPAddr{
 	IP: net.IPv4zero,
 }
-
 
 // ErrMissingFile may be returned from FormFile when the is no uploaded file
 // associated with the given multipart form key.
@@ -466,24 +465,6 @@ func SaveMultipartFile(fh *multipart.FileHeader, path string) error {
 	defer ff.Close()
 	_, err = util.CopyZeroAlloc(ff, f)
 	return err
-}
-
-
-func addrToIP(addr net.Addr) net.IP {
-	x, ok := addr.(*net.TCPAddr)
-	if !ok {
-		return net.IPv4zero
-	}
-	return x.IP
-}
-
-func getRedirectStatusCode(statusCode int) int {
-	if statusCode == constant.StatusMovedPermanently || statusCode == constant.StatusFound ||
-		statusCode == constant.StatusSeeOther || statusCode == constant.StatusTemporaryRedirect ||
-		statusCode == constant.StatusPermanentRedirect {
-		return statusCode
-	}
-	return constant.StatusFound
 }
 
 // NextProto adds nph to be processed when key is negotiated when TLS
@@ -779,8 +760,7 @@ func (s *Server) Serve(ln net.Listener) error {
 			c.Close()
 			s.setState(c, StateClosed)
 			if time.Since(lastOverflowErrorTime) > time.Minute {
-				s.logger().Printf("The incoming connection cannot be served, because %d concurrent connections are served. "+
-					"Try increasing Server.Concurrency", maxWorkersCount)
+				s.logger().Error("The incoming connection cannot be served", viper.Int("concurrent connections", maxWorkersCount))
 				lastOverflowErrorTime = time.Now()
 			}
 
@@ -850,12 +830,12 @@ func acceptConn(s *Server, ln net.Listener, lastPerIPErrorTime *time.Time) (net.
 				panic("BUG: net.Listener returned non-nil conn and non-nil error")
 			}
 			if netErr, ok := err.(net.Error); ok && netErr.Temporary() {
-				s.logger().Printf("Temporary error when accepting new connections: %s", netErr)
+				s.logger().Error("Temporary error when accepting new connections", viper.Error(netErr))
 				time.Sleep(time.Second)
 				continue
 			}
 			if err != io.EOF && !strings.Contains(err.Error(), "use of closed network connection") {
-				s.logger().Printf("Permanent error when accepting new connections: %s", err)
+				s.logger().Error("Permanent error when accepting new connections", viper.Error(err))
 				return nil, err
 			}
 			return nil, io.EOF
@@ -867,8 +847,9 @@ func acceptConn(s *Server, ln net.Listener, lastPerIPErrorTime *time.Time) (net.
 			pic := wrapPerIPConn(s, c)
 			if pic == nil {
 				if time.Since(*lastPerIPErrorTime) > time.Minute {
-					s.logger().Printf("The number of connections from %s exceeds MaxConnsPerIP=%d",
-						getConnIP4(c), s.MaxConnsPerIP)
+					s.logger().Error("The number of connections from",
+						viper.String("addr", string(getConnIP4(c))),
+						viper.Int("MaxConnsPerIP", s.MaxConnsPerIP))
 					*lastPerIPErrorTime = time.Now()
 				}
 				continue
@@ -894,7 +875,7 @@ func wrapPerIPConn(s *Server, c net.Conn) net.Conn {
 	return acquirePerIPConn(c, ip, &s.perIPConnCounter)
 }
 
-func (s *Server) logger() Logger {
+func (s *Server) logger() *viper.Logger {
 	if s.Logger != nil {
 		return s.Logger
 	}
@@ -1422,7 +1403,6 @@ func (fa *fakeAddrer) Close() error {
 	panic("BUG: unexpected Close call")
 }
 
-
 func (s *Server) getServerName() []byte {
 	v := s.serverName.Load()
 	var serverName []byte
@@ -1457,7 +1437,6 @@ func (s *Server) writeFastError(w io.Writer, statusCode int, msg string) {
 		"%s",
 		serverDate.Load(), len(msg), msg)
 }
-
 
 func (s *Server) writeErrorResponse(bw *bufio.Writer, ctx *RequestCtx, serverName []byte, err error) *bufio.Writer {
 	errorHandler := defaultErrorHandler
@@ -1531,7 +1510,6 @@ func (c ConnState) String() string {
 	return stateName[c]
 }
 
-
 func (s *Server) releaseCtx(ctx *RequestCtx) {
 	if ctx.timeoutResponse != nil {
 		panic("BUG: cannot release timed out RequestCtx")
@@ -1540,4 +1518,3 @@ func (s *Server) releaseCtx(ctx *RequestCtx) {
 	ctx.fbr.c = nil
 	s.ctxPool.Put(ctx)
 }
-

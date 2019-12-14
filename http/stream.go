@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/gottingen/simo/listener"
+	"github.com/gottingen/network/listener"
 )
 
 // StreamWriter must write data to w.

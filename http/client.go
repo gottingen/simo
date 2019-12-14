@@ -8,7 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gottingen/simo/http/constant"
+	"github.com/gottingen/network/tcp"
+	"github.com/gottingen/network/timer"
 	"github.com/gottingen/simo/util"
+	"github.com/gottingen/viper"
 	"io"
 	"net"
 	"strconv"
@@ -780,7 +783,7 @@ func clientGetURLDeadline(dst []byte, url string, deadline time.Time, c clientDo
 		}
 	}()
 
-	tc := util.AcquireTimer(timeout)
+	tc := timer.AcquireTimer(timeout)
 	select {
 	case resp := <-ch:
 		ReleaseRequest(req)
@@ -792,7 +795,7 @@ func clientGetURLDeadline(dst []byte, url string, deadline time.Time, c clientDo
 		body = dst
 		err = ErrTimeout
 	}
-	util.ReleaseTimer(tc)
+	timer.ReleaseTimer(tc)
 
 	return statusCode, body, err
 }
@@ -1055,7 +1058,7 @@ func clientDoDeadline(req *Request, resp *Response, deadline time.Time, c client
 		ReleaseRequest(reqCopy)
 	}()
 
-	tc := util.AcquireTimer(timeout)
+	tc := timer.AcquireTimer(timeout)
 	var err error
 	select {
 	case err = <-ch:
@@ -1067,7 +1070,7 @@ func clientDoDeadline(req *Request, resp *Response, deadline time.Time, c client
 		}
 		mu.Unlock()
 	}
-	util.ReleaseTimer(tc)
+	timer.ReleaseTimer(tc)
 
 	select {
 	case <-ch:
@@ -1573,7 +1576,7 @@ func (c *HostClient) dialHostHard() (conn net.Conn, err error) {
 
 	timeout := c.ReadTimeout + c.WriteTimeout
 	if timeout <= 0 {
-		timeout = DefaultDialTimeout
+		timeout = tcp.DefaultDialTimeout
 	}
 	deadline := time.Now().Add(timeout)
 	for n > 0 {
@@ -1615,8 +1618,8 @@ var ErrTLSHandshakeTimeout = errors.New("tls handshake timed out")
 var timeoutErrorChPool sync.Pool
 
 func tlsClientHandshake(rawConn net.Conn, tlsConfig *tls.Config, timeout time.Duration) (net.Conn, error) {
-	tc := util.AcquireTimer(timeout)
-	defer util.ReleaseTimer(tc)
+	tc := timer.AcquireTimer(timeout)
+	defer timer.ReleaseTimer(tc)
 
 	var ch chan error
 	chv := timeoutErrorChPool.Get()
@@ -1649,9 +1652,9 @@ func tlsClientHandshake(rawConn net.Conn, tlsConfig *tls.Config, timeout time.Du
 func dialAddr(addr string, dial DialFunc, dialDualStack, isTLS bool, tlsConfig *tls.Config, timeout time.Duration) (net.Conn, error) {
 	if dial == nil {
 		if dialDualStack {
-			dial = DialDualStack
+			dial = tcp.DialDualStack
 		} else {
-			dial = Dial
+			dial = tcp.Dial
 		}
 		addr = addMissingPort(addr, isTLS)
 	}
@@ -1784,7 +1787,7 @@ type PipelineClient struct {
 	// Logger for logging client errors.
 	//
 	// By default standard logger from log package is used.
-	Logger Logger
+	Logger *viper.Logger
 
 	connClients     []*pipelineConnClient
 	connClientsLock sync.Mutex
@@ -1805,7 +1808,7 @@ type pipelineConnClient struct {
 	WriteBufferSize     int
 	ReadTimeout         time.Duration
 	WriteTimeout        time.Duration
-	Logger              Logger
+	Logger              *viper.Logger
 
 	workPool sync.Pool
 
@@ -2053,7 +2056,7 @@ func (c *pipelineConnClient) init() {
 		}
 		go func() {
 			if err := c.worker(); err != nil {
-				c.logger().Printf("error in PipelineClient(%q): %s", c.Addr, err)
+				c.logger().Error("error in", viper.String("PipelineClient", c.Addr), viper.Error(err))
 				if netErr, ok := err.(net.Error); ok && netErr.Temporary() {
 					// Throttle client reconnections on temporary errors
 					time.Sleep(time.Second)
@@ -2281,7 +2284,7 @@ func (c *pipelineConnClient) reader(conn net.Conn, stopCh <-chan struct{}) error
 	}
 }
 
-func (c *pipelineConnClient) logger() Logger {
+func (c *pipelineConnClient) logger() *viper.Logger {
 	if c.Logger != nil {
 		return c.Logger
 	}
