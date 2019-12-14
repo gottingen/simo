@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/buffer"
 )
 
 // Writer is an interface stackless writer must conform to.

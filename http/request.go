@@ -6,7 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/buffer"
 	"github.com/gottingen/simo/compress"
 	"github.com/gottingen/simo/http/bytesconv"
 	"github.com/gottingen/simo/http/constant"

@@ -6,7 +6,7 @@ import (
 	"net"
 	"testing"
 
-	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/buffer"
 )
 
 func BenchmarkAppendHTMLEscape(b *testing.B) {

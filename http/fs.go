@@ -21,7 +21,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/buffer"
 	"github.com/klauspost/compress/gzip"
 )
 

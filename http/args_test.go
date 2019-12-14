@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/buffer"
 )
 
 func TestDecodeArgAppend(t *testing.T) {

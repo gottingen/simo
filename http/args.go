@@ -7,7 +7,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/buffer"
 	"github.com/gottingen/simo/http/bytesconv"
 	"github.com/gottingen/simo/util"
 )

@@ -3,7 +3,7 @@ package http
 import (
 	"bufio"
 	"bytes"
-	"github.com/gottingen/kgb/buffer"
+	"github.com/gottingen/buffer"
 	"github.com/gottingen/simo/http/constant"
 	"io"
 	"testing"

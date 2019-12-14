@@ -8,7 +8,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/buffer"
 	"github.com/gottingen/simo/stackless"
 	"github.com/klauspost/compress/flate"
 	"github.com/klauspost/compress/gzip"

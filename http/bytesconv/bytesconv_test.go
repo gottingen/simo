@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gottingen/gekko/buffer"
+	"github.com/gottingen/buffer"
 )
 
 func TestAppendHTMLEscape(t *testing.T) {
