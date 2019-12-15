@@ -7,6 +7,4 @@ const (
 	defaultWriteBufferSize = 4096
 )
 
-//var defaultLogger = Logger(log.New(os.Stderr, "", log.LstdFlags))
-
-var defaultLogger = viper.NewNop()
+var defaultLogger, _ = viper.NewDevelopment()

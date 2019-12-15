@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"fmt"
+	"github.com/gottingen/viper"
 	"reflect"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ func TestURICopyToQueryArgs(t *testing.T) {
 	var u1 URI
 	u.CopyTo(&u1)
 	a1 := u1.QueryArgs()
-
+	defaultLogger.Info("test degualt", viper.String("testlog", "loggg"))
 	if string(a1.Peek("foo")) != "bar" {
 		t.Fatalf("unexpected query args value %q. Expecting %q", a1.Peek("foo"), "bar")
 	}

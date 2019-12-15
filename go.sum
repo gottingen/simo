@@ -9,9 +9,13 @@ github.com/gottingen/atomic v1.0.0 h1:P8olnc90LjVzIf0ik9tvV7TK3VbgslfKJOoo+3U4Ep
 github.com/gottingen/atomic v1.0.0/go.mod h1:CmXcUrII6mwtdJJ2qMt9AfkvyTYCBmHUpl4tHwRuxNg=
 github.com/gottingen/buffer v0.0.1 h1:tHnD+6g352Mo01a9Yg7jbH2V6C/XdbH6dTOdelX7wLM=
 github.com/gottingen/buffer v0.0.1/go.mod h1:wNL6NhY00RayYbCDfPW2OeRgPnzst01d5nIkJJFwdTI=
+github.com/gottingen/buffer v0.0.2 h1:aytIXRvcjN+BWld/EeIWnzwjiViGUSG64GbFqm2jxCs=
+github.com/gottingen/buffer v0.0.2/go.mod h1:eqqLx58iRcc0kI+nNYcVZIzZPt2aE8ShxwuKA+CnmWI=
 github.com/gottingen/felix v0.4.1/go.mod h1:E8gSDgWao9uje7U3HTm3q7JFdxHAs2ApBpjMZ2O1noQ=
 github.com/gottingen/gekko v1.2.3 h1:WvHPxrxFez/K7kTv70VAUFMSWchGSjK3MsfHGLjGUvw=
 github.com/gottingen/gekko v1.2.3/go.mod h1:ZpXNZUGJsnujLAlS9Mzo+ja87uABldkq+VksImt20XE=
+github.com/gottingen/gekko v1.3.0 h1:7Z0Mpa3VvTd3VYywug/WcC7+my7APmir4KpQygc1gWA=
+github.com/gottingen/gekko v1.3.0/go.mod h1:kvpZh1CwchS60GhDe/FeigwKuN7egWxTmjcVxPH+yzA=
 github.com/gottingen/kgb v0.1.0/go.mod h1:IDPE3kbo7++uR0PRx14xW07jbylYxj/XIrD9hDop51M=
 github.com/gottingen/kmetrics v0.0.0-20191020170523-343179a4002b/go.mod h1:oDuit9c7zHQTtI2zv55u32fKgibmcMNfzYs20up6Rj0=
 github.com/gottingen/network v0.0.1 h1:vorzIC9tTOjNHO6syH15S9iiXX3Cx722peEk7VkObZs=
@@ -24,6 +28,10 @@ github.com/gottingen/network v0.0.4 h1:TAvDOFADObJ8AEBTzcI+fHj2ECe89ynqKuLf4tw4E
 github.com/gottingen/network v0.0.4/go.mod h1:39fPSLpyhfnFH07myQxfWZ3swuWf85XhcX9I2zXyg5o=
 github.com/gottingen/viper v0.0.0-20191214070636-51b1a15146e7 h1:gjG8PYfkkvjeBTzv52s5mxJiaexdGtd5fM+bJ+hOfFc=
 github.com/gottingen/viper v0.0.0-20191214070636-51b1a15146e7/go.mod h1:fGA0DMOSm3jITKz7lVyVXHSLq/40urdycG/NEJTLGNw=
+github.com/gottingen/viper v0.1.1 h1:E0KKwKvGJLYPSfNJ9ubpV49OWy70IjYA7sCjPtyq4Ds=
+github.com/gottingen/viper v0.1.1/go.mod h1:Rfj/uKrsFCJJ/+vo7Um4qPxEaVcfsmAvSd32hLZkFBw=
+github.com/gottingen/viper v0.1.2 h1:vEC9aqQIojZPSUxrDMp7wGF2PrJCvU5liPsWw1YrMuA=
+github.com/gottingen/viper v0.1.2/go.mod h1:Rfj/uKrsFCJJ/+vo7Um4qPxEaVcfsmAvSd32hLZkFBw=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/jehiah/go-strftime v0.0.0-20171201141054-1d33003b3869/go.mod h1:cJ6Cj7dQo+O6GJNiMx+Pa94qKj+TG8ONdKHgMNIyyag=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
